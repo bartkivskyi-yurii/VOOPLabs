@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Text;
 
 namespace Bartkivskyi_Lab6_VOOP
 {
@@ -6,6 +7,9 @@ namespace Bartkivskyi_Lab6_VOOP
     {
         public static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.InputEncoding = Encoding.UTF8;
+
             FlyingSmartCar flyCar = new FlyingSmartCar();
 
             flyCar.LoadPassangers(new Person[] { new Person("Олексій"), new Person("Антон") });
@@ -22,25 +26,25 @@ namespace Bartkivskyi_Lab6_VOOP
 
             try
             {
-                Console.WriteLine("--- Посадка пасажирів ---");
+                Console.WriteLine("Посадка пасажирів");
                 for (int i = 0; i < people.Length; i++)
                 {
                     carSeats[i] = people[i];
                     Console.WriteLine($"{people[i].Name} сів/сіла в авто.");
                 }
 
-                Console.WriteLine("--- Спроба запуску ---");
+                Console.WriteLine("Спроба запуску");
                 car.StartEngine();
 
                 File.WriteAllText("trip_log.txt", "Поїздка пройшла успішно.");
             }
             catch (IndexOutOfRangeException ex)
             {
-                Console.WriteLine($"\nПОМИЛКА МАСИВУ: В автомобілі не вистачає місць! Деталі: {ex.Message}");
+                Console.WriteLine($"\nВ автомобілі не вистачає місць. Деталі: {ex.Message}");
             }
             catch (CarMalfunctionException ex)
             {
-                Console.WriteLine($"\nТЕХНІЧНА ПОЛОМКА: {ex.Message}");
+                Console.WriteLine($"\nТехнічна поломка: {ex.Message}");
                 try
                 {
                     File.AppendAllText("error_log.txt", ex.Message + "\n");
@@ -53,7 +57,7 @@ namespace Bartkivskyi_Lab6_VOOP
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nНЕВІДОМА ПОМИЛКА: {ex.Message}");
+                Console.WriteLine($"\nНевідома помилка: {ex.Message}");
             }
             finally
             {
@@ -70,7 +74,7 @@ namespace Bartkivskyi_Lab6_VOOP
         }
         static void CallAmbulance(string msg)
         {
-            Console.WriteLine($"Отримано сигнал тривоги: '{msg}'.");
+            Console.WriteLine($"Отримано сигнал тривоги: \"{msg}\".");
         }
 
         static void BlockDoors(string msg)
