@@ -17,6 +17,7 @@ namespace Bartkivskyi_Lab6_VOOP
 
             flyCar.Transform();
             flyCar.TakeOff();
+            flyCar.Transform();
 
             // Помилки
             SmartCar car = new SmartCar();
@@ -63,7 +64,8 @@ namespace Bartkivskyi_Lab6_VOOP
             {
                 Console.WriteLine("\nСистема діагностики автомобіля завершила роботу.");
             }
-            car.OnEmergency += CallAmbulance;
+
+            car.OnEmergency += CallTowTruck;
 
             car.OnEmergency += BlockDoors;
             car.OnEmergency += SendSmsToOwner;
@@ -72,7 +74,7 @@ namespace Bartkivskyi_Lab6_VOOP
 
             car.TriggerEmergency("Різке падіння тиску в передньому колесі!");
         }
-        static void CallAmbulance(string msg)
+        static void CallTowTruck(string msg)
         {
             Console.WriteLine($"Отримано сигнал тривоги: \"{msg}\".");
         }
