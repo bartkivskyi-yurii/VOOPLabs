@@ -6,6 +6,7 @@ namespace Student_Progress_Tracker
 {
     internal class Teacher
     {
-
+        public string name;
+        public string department;
     }
 }
