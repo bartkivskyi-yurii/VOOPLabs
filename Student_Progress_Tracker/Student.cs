@@ -6,22 +6,58 @@ namespace Student_Progress_Tracker
 {
     internal class Student
     {
-        public string Name { get; set; }
-        public int LecturesAttended { get; set; }
-        public int LabsAttended { get; set; }
-        public double TotalPoints { get; private set; }
-        public Dictionary<string, double> CompletedAssignments { get; set; } = new();
+        private string name;
+        private int lecturesAttended;
+        private int labsAttended;
+        private double totalPoints;
+        private Dictionary<string, double> completedAssignments;
 
-        public Student(string name)
+        public string Name
         {
-            Name = name;
+            get { return name; }
+            set { name = value; }
         }
 
-        public Student(string name,  int lecturesAttended, int labsAttended)
+        public int LecturesAttended
+        {
+            get { return lecturesAttended; }
+            set { lecturesAttended = value; }
+        }
+
+        public int LabsAttended
+        {
+            get { return labsAttended; }
+            set { labsAttended = value; }
+        }
+
+        public double TotalPoints
+        {
+            get { return totalPoints; }
+            private set { totalPoints = value; }
+        }
+
+        public Dictionary<string, double> CompletedAssignments
+        {
+            get { return completedAssignments; }
+        }
+
+        // Конструктор
+        public Student(string name, int lectures = 0, int labs = 0)
         {
             Name = name;
-            LecturesAttended = lecturesAttended;
-            LabsAttended = labsAttended;
+            LecturesAttended = lectures;
+            LabsAttended = labs;
+            TotalPoints = 0;
+            completedAssignments = new Dictionary<string, double>();
+        }
+
+        public void RestoreGradeQuietly(string assignmentName, double points)
+        {
+            if (!CompletedAssignments.ContainsKey(assignmentName))
+            {
+                CompletedAssignments.Add(assignmentName, points);
+                TotalPoints += points;
+            }
         }
 
         public void AssignGrade(string assignmentName, double points)
