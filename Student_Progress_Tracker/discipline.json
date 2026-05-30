@@ -1,6 +1,20 @@
-﻿{
-  "Title": "Об'єктно-орієнтоване програмування",
-  "TotalLectures": 16,
-  "TotalLabs": 6,
-  "MaxPoints": 100.0
-}
+﻿[
+  {
+    "Title": "Об'єктно-орієнтоване програмування",
+    "TotalLectures": 16,
+    "TotalLabs": 6,
+    "MaxPoints": 100.0
+  },
+  {
+    "Title": "Алгоритми та аналіз структур даних",
+    "TotalLectures": 16,
+    "TotalLabs": 6,
+    "MaxPoints": 100.0
+  },
+  {
+    "Title": "Вища математика",
+    "TotalLectures": 20,
+    "TotalLabs": 0,
+    "MaxPoints": 100.0
+  }
+]

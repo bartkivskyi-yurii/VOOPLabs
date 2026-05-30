@@ -7,27 +7,92 @@ namespace Student_Progress_Tracker
 {
     class Program
     {
+        private static bool isRunning = true;
+
         public static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
             Console.InputEncoding = Encoding.UTF8;
 
-            string dbPath = "database.txt";
+            string jsonPath = "discipline.json";
+            List<Discipline> availableDisciplines = new List<Discipline>();
 
-            Discipline oop;
-
-            if (File.Exists("discipline.json"))
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("Оберіть дисципліну:");
+            for (int i = 0; i < availableDisciplines.Count; i++)
             {
-                string jsonString = File.ReadAllText("discipline.json");
-                oop = JsonSerializer.Deserialize<Discipline>(jsonString);
+                Console.WriteLine($"{i + 1} - {availableDisciplines[i].Title}");
             }
-            else
-            {
-                oop = new Discipline("Об'єктно-орієнтоване програмування", 16, 6, 100.0);
-            }
-            GradeBook gBook = new GradeBook(oop);
+            Console.ResetColor();
 
-            bool isRunning = true;
+            if (File.Exists(jsonPath))
+            {
+                try
+                {
+                    string rawJson = File.ReadAllText(jsonPath);
+                    availableDisciplines = JsonSerializer.Deserialize<List<Discipline>>(rawJson);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Не вдалося зчитати конфігурацію дисциплін: {ex.Message}");
+                    return;
+                }
+            }
+
+            if (availableDisciplines == null || availableDisciplines.Count == 0)
+            {
+                Console.WriteLine("Створюємо початковий шаблон файлу disciplines.json...");
+                availableDisciplines = new List<Discipline>
+                {
+                    new Discipline("Об'єктно-орієнтоване програмування", 16, 6, 100.0),
+                    new Discipline("Алгоритми та аналіз структур даних", 16, 6, 100.0),
+                    new Discipline("Вища математика", 20, 10, 100.0)
+                };
+
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string templateJson = JsonSerializer.Serialize(availableDisciplines, options);
+                File.WriteAllText(jsonPath, templateJson);
+            }
+
+            Discipline selectedDiscipline = null;
+
+            while (selectedDiscipline == null)
+            {
+                Console.Clear();
+                Console.WriteLine("Оберіть дисципліну для роботи:");
+
+                for (int i = 0; i < availableDisciplines.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1} - {availableDisciplines[i].Title}");
+                }
+                Console.WriteLine("0 - Вийти з програми");
+                Console.Write("\nВаш вибір: ");
+
+                string input = Console.ReadLine();
+
+                if (input == "0")
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Завершення роботи");
+                    Console.ResetColor();
+                    return;
+                }
+
+                if (int.TryParse(input, out int choiceIndex) && choiceIndex >= 1 && choiceIndex <= availableDisciplines.Count)
+                {
+                    selectedDiscipline = availableDisciplines[choiceIndex - 1];
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("\nНевірний вибір. Спробуйте ще раз.");
+                    Console.ResetColor();
+                    Console.WriteLine("Натисніть будь-яку клавішу для продовження...");
+                    Console.ReadKey();
+                }
+            }
+
+            GradeBook gBook = new GradeBook(selectedDiscipline);
 
             while (isRunning)
             {
@@ -41,7 +106,11 @@ namespace Student_Progress_Tracker
 
                     foreach (string line in menuLines) Console.WriteLine(line);
                 }
-                
+                else
+                {
+                    Console.WriteLine("1. Додати студента\n2. Показати успішність\n3. Відмітити присутність\n4. Оцінити роботу\n0. Вийти");
+                }
+
                 Console.ResetColor();
 
                 int choice = int.Parse(Console.ReadLine());
@@ -49,7 +118,7 @@ namespace Student_Progress_Tracker
                 switch (choice)
                 {
                     case 1:
-                        gBook.ExecuteAddStudent(dbPath);
+                        gBook.ExecuteAddStudent(gBook.DbPath);
                         break;
                     case 2:
                         gBook.ExecuteShowAllStudents();
@@ -58,23 +127,30 @@ namespace Student_Progress_Tracker
                         gBook.ExecuteMarkAttendance();
                         break;
                     case 4:
-                        gBook.ExecuteRecordGrade(dbPath);
-                        break;
-                    case 5:
-                        gBook.SaveToDatabase(dbPath);
-                        break;
-                    case 6:
-                        gBook.LoadFromDatabase(dbPath);
+                        gBook.ExecuteRecordGrade(gBook.DbPath);
                         break;
                     case 0:
-                        Console.WriteLine("Завершення роботи");
-                        isRunning = false;
+                        ExitProgram(gBook);
                         break;
                     default:
+                        Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("Уводьте числа які зазнченні в меню для подальших дій.");
+                        Console.ResetColor();
                         break;
                 }
             }
+        }
+
+        private static void ExitProgram(GradeBook gBook)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+
+            Console.WriteLine("Завершення роботи");
+
+            gBook.SaveToDatabase(gBook.DbPath);
+
+            Console.ResetColor();
+            isRunning = false;
         }
     }
 }

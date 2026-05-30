@@ -11,13 +11,18 @@ namespace Student_Progress_Tracker
     internal class GradeBook
     {
         public Discipline Course { get; set; }
+        private List<Student> students = new List<Student>();
+
+        public string DbPath { get; private set; }
 
         public GradeBook(Discipline course)
         {
             Course = course;
-        }
 
-        private List<Student> students = new List<Student>();
+            DbPath = $"db_{course.Title}.txt";
+
+            LoadFromDatabase(DbPath);
+        }
 
         public void AddStudent(Student student)
         {
@@ -37,10 +42,10 @@ namespace Student_Progress_Tracker
             }
 
             File.WriteAllLines(filePath, lines);
-            Console.WriteLine("Дані успішно збережено у базу даних");
+            Console.WriteLine($"Дані дисципліни {Course.Title} успішно збережено у базу даних");
         }
 
-        public void LoadFromDatabase(string filePath)
+        private void LoadFromDatabase(string filePath)
         {
             if (!File.Exists(filePath)) return;
 
