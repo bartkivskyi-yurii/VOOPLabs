@@ -1,0 +1,13 @@
+﻿{
+  "Title": "ПІДСУМКОВА ВІДОМІСТЬ ПЕРЕД ІСПИТОМ",
+  "HeaderNo": "№",
+  "HeaderName": "ПІБ Студента",
+  "HeaderLectures": "Лекції",
+  "HeaderLabs": "Лаби",
+  "HeaderPoints": "Бали",
+  "HeaderStatus": "Статус",
+  "EmptyMessage": "У журналі поки немає студентів.",
+  "StatusAdmitted": "ДОПУЩЕНИЙ",
+  "StatusNotAdmitted": "НЕ ДОПУЩЕНИЙ",
+  "FooterMessage": "Натисніть будь-яку клавішу для повернення в головне меню..."
+}

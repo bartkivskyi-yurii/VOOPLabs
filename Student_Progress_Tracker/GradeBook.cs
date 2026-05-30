@@ -140,8 +140,53 @@ namespace Student_Progress_Tracker
             }
         }
 
+        private (double Points, bool IsAdmitted) CalculateExamStatus(Student student)
+        {
+            double points = student.CompletedAssignments.Values.Sum();
+            bool lecturesOk = student.LecturesAttended >= (Course.TotalLectures * 0.5);
+            bool labsOk = student.LabsAttended >= (Course.TotalLabs * 0.5);
+
+            return (points, lecturesOk && labsOk && points >= 36.0);
+        }
+
+        public void ExecutePreExamSummary()
+        {
+            Console.Clear();
+            string jsonPath = "summary_ui.json";
+            SummaryUiStrings ui = File.Exists(jsonPath)
+                ? JsonSerializer.Deserialize<SummaryUiStrings>(File.ReadAllText(jsonPath)) ?? new SummaryUiStrings()
+                : new SummaryUiStrings();
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("=================================================================================");
+            Console.WriteLine($"                 {ui.Title}\n Дисципліна: {Course.Title}");
+            Console.WriteLine("=================================================================================");
+            Console.WriteLine($"{ui.HeaderNo,-3} | {ui.HeaderName,-30} | {ui.HeaderLectures,-8} | {ui.HeaderLabs,-6} | {ui.HeaderPoints,-6} | {ui.HeaderStatus}");
+            Console.WriteLine("---------------------------------------------------------------------------------");
+            Console.ResetColor();
+
+            if (students.Count == 0) { Console.WriteLine($" {ui.EmptyMessage}\n================================================================================="); Console.ReadKey(); return; }
+
+            for (int i = 0; i < students.Count; i++)
+            {
+                var student = students[i];
+                var (points, isAdmitted) = CalculateExamStatus(student);
+
+                Console.Write($"{i + 1,-3} | {student.Name,-30} | {student.LecturesAttended}/{Course.TotalLectures,-5} | {student.LabsAttended}/{Course.TotalLabs,-4} | {points,-6:F1} | ");
+
+                Console.ForegroundColor = isAdmitted ? ConsoleColor.Green : ConsoleColor.Red;
+                Console.WriteLine(isAdmitted ? ui.StatusAdmitted : ui.StatusNotAdmitted);
+                Console.ResetColor();
+            }
+
+            Console.WriteLine("=================================================================================");
+            Console.WriteLine($"\n{ui.FooterMessage}");
+            Console.ReadKey();
+        }
+
         public void ExecuteAddStudent(string dbPath)
         {
+            Console.Clear();
             Console.Write("Введіть ім'я студента: ");
             string name = Console.ReadLine();
 
@@ -153,6 +198,7 @@ namespace Student_Progress_Tracker
 
         public void ExecuteShowAllStudents()
         {
+            Console.Clear();
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Журнал студентів із успішністю");
             Console.ResetColor();
@@ -161,6 +207,7 @@ namespace Student_Progress_Tracker
 
         public void ExecuteMarkAttendance()
         {
+            Console.Clear();
             Console.WriteLine("Уведіть ім'я студента(ки): ");
             string attName = Console.ReadLine();
 
@@ -195,6 +242,7 @@ namespace Student_Progress_Tracker
 
         public void ExecuteRecordGrade(string dbPath)
         {
+            Console.Clear();
             Console.Write("Введіть ім'я студента: ");
             string gradeName = Console.ReadLine();
 

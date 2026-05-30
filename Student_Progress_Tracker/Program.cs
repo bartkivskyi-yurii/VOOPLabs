@@ -2,6 +2,7 @@
 using System.Text;
 using System.IO;
 using System.Text.Json;
+using System.Linq;
 
 namespace Student_Progress_Tracker
 {
@@ -59,6 +60,7 @@ namespace Student_Progress_Tracker
             while (selectedDiscipline == null)
             {
                 Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine("Оберіть дисципліну для роботи:");
 
                 for (int i = 0; i < availableDisciplines.Count; i++)
@@ -67,6 +69,7 @@ namespace Student_Progress_Tracker
                 }
                 Console.WriteLine("0 - Вийти з програми");
                 Console.Write("\nВаш вибір: ");
+                Console.ResetColor();
 
                 string input = Console.ReadLine();
 
@@ -128,6 +131,9 @@ namespace Student_Progress_Tracker
                         break;
                     case 4:
                         gBook.ExecuteRecordGrade(gBook.DbPath);
+                        break;
+                    case 5:
+                        gBook.ExecutePreExamSummary();
                         break;
                     case 0:
                         ExitProgram(gBook);
