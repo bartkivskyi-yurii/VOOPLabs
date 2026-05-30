@@ -41,7 +41,6 @@ namespace Student_Progress_Tracker
             get { return completedAssignments; }
         }
 
-        // Конструктор
         public Student(string name, int lectures = 0, int labs = 0)
         {
             Name = name;
@@ -62,9 +61,23 @@ namespace Student_Progress_Tracker
 
         public void AssignGrade(string assignmentName, double points)
         {
-            CompletedAssignments.Add(assignmentName, points);
-            TotalPoints += points;
-            Console.WriteLine($"Студент {Name} отримав {points} балів за {assignmentName}. Сума балів: {TotalPoints}");
+            if (CompletedAssignments.ContainsKey(assignmentName))
+            {
+                double oldPoints = CompletedAssignments[assignmentName];
+                TotalPoints -= oldPoints;
+
+                TotalPoints += points;
+                CompletedAssignments[assignmentName] = points;
+
+                Console.WriteLine($"Оцінку за \"{assignmentName}\" змінено з {oldPoints} на {points}. Нова сума балів: {TotalPoints}");
+            }
+            else
+            {
+                CompletedAssignments.Add(assignmentName, points);
+                TotalPoints += points;
+
+                Console.WriteLine($"Студент {Name} отримав {points} балів за \"{assignmentName}\". Сума балів: {TotalPoints}");
+            }
         }
     }
 }

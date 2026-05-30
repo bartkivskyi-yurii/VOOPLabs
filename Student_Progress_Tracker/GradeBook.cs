@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Student_Progress_Tracker
 {
@@ -87,7 +88,22 @@ namespace Student_Progress_Tracker
 
             for (int i = 0; i < students.Count; i++)
             {
+                var student = students[i];
                 Console.WriteLine($"{i + 1}. {students[i].Name} | Лекції: {students[i].LecturesAttended}, Лаб: {students[i].LabsAttended} | Бали: {students[i].TotalPoints}");
+
+                if (student.CompletedAssignments.Count > 0)
+                {
+                    Console.WriteLine("\tВиконані роботи: ");
+                    foreach (var assignment in student.CompletedAssignments)
+                    {
+                        Console.WriteLine($"\t{assignment.Key}: {assignment.Value} балів");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Немає оцінених робіт");
+                }
+                Console.WriteLine(new string('-', 50));
             }
         }
 
@@ -177,6 +193,13 @@ namespace Student_Progress_Tracker
             Console.Write("Введіть ім'я студента: ");
             string gradeName = Console.ReadLine();
 
+            var student = students.FirstOrDefault(s => s.Name == gradeName);
+            if (student == null)
+            {
+                Console.WriteLine($"Студента \"{gradeName}\" не знайдено.");
+                return;
+            }
+
             string taskTitle = "";
 
             if (File.Exists("assignments.json"))
@@ -192,31 +215,77 @@ namespace Student_Progress_Tracker
                         Console.WriteLine($"{i + 1} - {assignments[i]}");
                     }
 
-                    Console.WriteLine("Ваш вибір: ");
-                    if (int.TryParse(Console.ReadLine(), out int choiceIndex) && choiceIndex >= 1 && choiceIndex <= assignments.Length)
+                    Console.Write("Ваш вибір: ");
+                    if (int.TryParse(Console.ReadLine(), out int choiceIndex) && choiceIndex >= 1 && choiceIndex <= assignments.Count)
                     {
                         taskTitle = assignments[choiceIndex - 1];
-                    }
-                    else
-                    {
-                        Console.WriteLine("Невірний вибір номера роботи.");
-                        return;
                     }
                 }
             }
 
             if (string.IsNullOrEmpty(taskTitle))
             {
-                Console.WriteLine("Уведіть назву роботи вручну: ");
+                Console.Write("Уведіть назву роботи вручну: ");
                 taskTitle = Console.ReadLine();
             }
 
-            Console.WriteLine($"Уведіть кількість балів за \"{taskTitle}\": ");
+            Console.Write($"Уведіть кількість балів за \"{taskTitle}\": ");
             if (double.TryParse(Console.ReadLine(), out double points) && points >= 0)
             {
+                Console.WriteLine("Коли була здана робота?");
+                Console.WriteLine("1 - Точно вчасно");
+                Console.WriteLine("2 - Раніше дедлайну (+ бонус)");
+                Console.WriteLine("3 - Після дедлайну (- штраф)");
+                Console.WriteLine("Ваш вибір (1, 2 або 3): ");
+                string deadlineChoice = Console.ReadLine();
+
+                if (deadlineChoice == "2")
+                {
+                    Console.Write("На скільки днів раніше дедлайну здана робота? ");
+                    if (int.TryParse(Console.ReadLine(), out int daysEarly) && daysEarly > 0)
+                    {
+                        double bonusPerDay = 1.5;
+                        double bonusTotal = daysEarly * bonusPerDay;
+                        points += bonusTotal;
+
+                        Console.WriteLine($"Бонус за ранню здачу: +{bonusTotal} балів. Всього за роботу: {points}");
+                    }
+                }
+                else if (deadlineChoice == "3")
+                {
+                    Console.Write("Скільки днів прострочено? ");
+                    if (int.TryParse(Console.ReadLine(), out int daysLate) && daysLate > 0)
+                    {
+                        double penaltyPerDay = 1.5;
+                        double penaltyTotal = daysLate * penaltyPerDay;
+                        points -= penaltyTotal;
+
+                        if (points < 0) points = 0;
+
+                        Console.WriteLine($"Штраф за запізнення: -{penaltyTotal} балів. Всього за роботу: {points}");
+                    }
+                }
+
                 RecordGrade(gradeName, taskTitle, points);
 
+                Console.Write("\nСтудент виконував індивідуальні творчі/ініціативні роботи, брав участь у конференціях/конкурсах/олімпіадах тощо? (1 - Так, 0 - Ні): ");
+                if (Console.ReadLine() == "1")
+                {
+                    Console.Write("Уведіть назву додаткової роботи (напр., Олімпіада): ");
+                    string bonusActivity = Console.ReadLine();
+
+                    Console.Write("Уведіть кількість бонусних балів: ");
+                    if (double.TryParse(Console.ReadLine(), out double bonusPoints) && bonusPoints > 0)
+                    {
+                        RecordGrade(gradeName, $"{bonusActivity}", bonusPoints);
+                    }
+                }
+
                 SaveToDatabase(dbPath);
+            }
+            else
+            {
+                Console.WriteLine("[Помилка] Некоректне значення балів.");
             }
         }
     }
