@@ -18,14 +18,6 @@ namespace Student_Progress_Tracker
             string jsonPath = "discipline.json";
             List<Discipline> availableDisciplines = new List<Discipline>();
 
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.WriteLine("Оберіть дисципліну:");
-            for (int i = 0; i < availableDisciplines.Count; i++)
-            {
-                Console.WriteLine($"{i + 1} - {availableDisciplines[i].Title}");
-            }
-            Console.ResetColor();
-
             if (File.Exists(jsonPath))
             {
                 try
@@ -97,16 +89,20 @@ namespace Student_Progress_Tracker
 
             GradeBook gBook = new GradeBook(selectedDiscipline);
 
+            List<string> menuLines = new List<string>();
+            if (File.Exists("menu.json"))
+            {
+                menuLines = JsonSerializer.Deserialize<List<string>>(File.ReadAllText("menu.json"));
+            }
+
             while (isRunning)
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine($"Журнал: {gBook.Course.Title}");
+                Console.ResetColor();
 
-                if (File.Exists("menu.json"))
+                if (menuLines != null && menuLines.Count > 0)
                 {
-                    string rawMenu = File.ReadAllText("menu.json");
-                    List<string> menuLines = JsonSerializer.Deserialize<List<string>>(rawMenu);
-
                     foreach (string line in menuLines) Console.WriteLine(line);
                 }
                 else
