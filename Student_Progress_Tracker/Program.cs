@@ -132,7 +132,7 @@ namespace Student_Progress_Tracker
                         gBook.ExecutePreExamSummary();
                         break;
                     case 6:
-                        gBook.ExecuteRecordExamGrade(gBook.DbPath);
+                        gBook.ExecutePostExamSummary(gBook.DbPath);
                         break;
                     case 0:
                         ExitProgram(gBook);

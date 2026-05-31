@@ -414,5 +414,130 @@ namespace Student_Progress_Tracker
                 Console.WriteLine("Некоректне значення балів.");
             }
         }
+
+        public void ExecutePostExamSummary(string dbPath)
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("Підсумкові відомості після іспиту (та введення балів)\n");
+
+                if (students == null || students.Count == 0)
+                {
+                    Console.WriteLine("Список студентів порожній.");
+                    Console.ReadKey();
+                    return;
+                }
+
+                Console.WriteLine(new string('-', 100));
+                Console.WriteLine($"| {"№",-2} | {"Студент",-20} | {"Семестр",-9} | {"Іспит",-7} | {"Сума",-6} | {"Оцінка (Нац)",-16} | {"ECTS",-6} |");
+                Console.WriteLine(new string('-', 100));
+
+                for (int i = 0; i < students.Count; i++)
+                {
+                    var student = students[i];
+
+                    var (semesterPoints, isAdmitted) = CalculateExamStatus(student);
+                    double examPoints = student.CompletedAssignments.ContainsKey("Іспит") ? student.CompletedAssignments["Іспит"] : 0;
+
+                    double validSemesterPoints = semesterPoints > 60 ? 60 : semesterPoints;
+                    double finalScore = validSemesterPoints + examPoints > 100 ? 100 : validSemesterPoints + examPoints;
+
+                    string natGrade;
+                    string ectsGrade;
+                    string examText;
+
+                    if (!isAdmitted)
+                    {
+                        natGrade = "Недопуск"; ectsGrade = "F"; examText = "—";
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    }
+                    else if (!student.CompletedAssignments.ContainsKey("Іспит"))
+                    {
+                        natGrade = "Не з'явився"; ectsGrade = "-"; examText = "—";
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                    }
+                    else
+                    {
+                        examText = examPoints.ToString("F1");
+                        if (examPoints < 24)
+                        {
+                            natGrade = "Незадовільно"; ectsGrade = "FX";
+                            Console.ForegroundColor = ConsoleColor.Red;
+                        }
+                        else
+                        {
+                            if (finalScore >= 90) { natGrade = "Відмінно"; ectsGrade = "A"; Console.ForegroundColor = ConsoleColor.Green; }
+                            else if (finalScore >= 82) { natGrade = "Добре"; ectsGrade = "B"; Console.ForegroundColor = ConsoleColor.Cyan; }
+                            else if (finalScore >= 74) { natGrade = "Добре"; ectsGrade = "C"; Console.ForegroundColor = ConsoleColor.Cyan; }
+                            else if (finalScore >= 64) { natGrade = "Задовільно"; ectsGrade = "D"; Console.ForegroundColor = ConsoleColor.Yellow; }
+                            else if (finalScore >= 60) { natGrade = "Задовільно"; ectsGrade = "E"; Console.ForegroundColor = ConsoleColor.Yellow; }
+                            else { natGrade = "Незадовільно"; ectsGrade = "FX"; Console.ForegroundColor = ConsoleColor.Red; }
+                        }
+                    }
+
+                    Console.WriteLine($"| {i + 1,-2} | {student.Name,-20} | {validSemesterPoints,9:F1} | {examText,7} | {finalScore,6:F1} | {natGrade,-16} | {ectsGrade,-6} |");
+                    Console.ResetColor();
+                }
+                Console.WriteLine(new string('-', 100));
+
+                Console.Write("\nОберіть номер студента для виставлення іспиту (або 0 для виходу в меню): ");
+                if (int.TryParse(Console.ReadLine(), out int studentIndex))
+                {
+                    if (studentIndex == 0) return;
+
+                    if (studentIndex >= 1 && studentIndex <= students.Count)
+                    {
+                        var student = students[studentIndex - 1];
+
+                        var (_, isAdmitted) = CalculateExamStatus(student);
+
+                        if (!isAdmitted)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"\n[Помилка]: Студента(ки) \"{student.Name}\" не допущено до іспиту (недостатньо балів або пропуски).");
+                            Console.ResetColor();
+                        }
+                        else
+                        {
+                            Console.Write($"\nУведіть бали за іспит для \"{student.Name}\" (від 0 до 40): ");
+                            if (double.TryParse(Console.ReadLine().Replace('.', ','), out double newExamPoints) && newExamPoints >= 0 && newExamPoints <= 40)
+                            {
+                                if (newExamPoints < 24)
+                                {
+                                    Console.ForegroundColor = ConsoleColor.Yellow;
+                                    Console.WriteLine("\n[Увага]: Студент не набрав мінімальні 24 бали (Іспит завалено).");
+                                    Console.ResetColor();
+                                }
+
+                                student.AssignGrade("Іспит", newExamPoints);
+                                SaveToDatabase(dbPath);
+
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.WriteLine("\nОцінку за іспит успішно збережено!");
+                                Console.ResetColor();
+                            }
+                            else
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("\n[Помилка]: Некоректне значення! Бали за іспит мають бути від 0 до 40.");
+                                Console.ResetColor();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nСтудента(ки) з таким номером не існує.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("\nНекоректний ввід. Потрібно ввести число.");
+                }
+
+                Console.WriteLine("\nНатисніть будь-яку клавішу для продовження...");
+                Console.ReadKey();
+            }
+        }
     }
 }

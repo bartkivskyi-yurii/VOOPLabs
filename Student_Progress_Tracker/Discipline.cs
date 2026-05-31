@@ -35,7 +35,6 @@ namespace Student_Progress_Tracker
             set { maxPoints = value; }
         }
 
-        // Конструктор за замовчуванням (потрібен для JSON)
         public Discipline() { }
 
         public Discipline(string title, int totalLectures, int totalLabs, double maxPoints)
