@@ -135,6 +135,9 @@ namespace Student_Progress_Tracker
                     case 5:
                         gBook.ExecutePreExamSummary();
                         break;
+                    case 6:
+                        gBook.ExecuteRecordExamGrade(gBook.DbPath);
+                        break;
                     case 0:
                         ExitProgram(gBook);
                         break;
