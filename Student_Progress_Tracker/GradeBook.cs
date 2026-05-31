@@ -193,11 +193,15 @@ namespace Student_Progress_Tracker
 
         private (double Points, bool IsAdmitted) CalculateExamStatus(Student student)
         {
-            double points = student.CompletedAssignments.Values.Sum();
+            double examPoints = student.CompletedAssignments.ContainsKey("Іспит") ? student.CompletedAssignments["Іспит"] : 0;
+            double semesterPoints = student.TotalPoints - examPoints;
+
             bool lecturesOk = student.LecturesAttended >= (Course.TotalLectures * 0.5);
             bool labsOk = student.LabsAttended >= (Course.TotalLabs * 0.5);
 
-            return (points, lecturesOk && labsOk && points >= 36.0);
+            bool isAdmitted = lecturesOk && labsOk && semesterPoints >= 36.0;
+
+            return (semesterPoints, isAdmitted);
         }
 
         public void ExecutePreExamSummary()
@@ -221,9 +225,10 @@ namespace Student_Progress_Tracker
             for (int i = 0; i < students.Count; i++)
             {
                 var student = students[i];
-                var (points, isAdmitted) = CalculateExamStatus(student);
 
-                Console.Write($"{i + 1,-3} | {student.Name,-30} | {student.LecturesAttended}/{Course.TotalLectures,-5} | {student.LabsAttended}/{Course.TotalLabs,-4} | {points,-6:F1} | ");
+                var (semesterPoints, isAdmitted) = CalculateExamStatus(student);
+
+                Console.Write($"{i + 1,-3} | {student.Name,-30} | {student.LecturesAttended}/{Course.TotalLectures,-5} | {student.LabsAttended}/{Course.TotalLabs,-4} | {semesterPoints,-6:F1} | ");
 
                 Console.ForegroundColor = isAdmitted ? ConsoleColor.Green : ConsoleColor.Red;
                 Console.WriteLine(isAdmitted ? ui.StatusAdmitted : ui.StatusNotAdmitted);
@@ -407,93 +412,6 @@ namespace Student_Progress_Tracker
             else
             {
                 Console.WriteLine("Некоректне значення балів.");
-            }
-        }
-
-        public void ExecuteRecordExamGrade(string dbPath)
-        {
-            while (true)
-            {
-                Console.Clear();
-                Console.WriteLine("=== ВВЕДЕННЯ ОЦІНОК ЗА ІСПИТ ===\n");
-
-                if (students == null || students.Count == 0)
-                {
-                    Console.WriteLine("Список студентів порожній.");
-                    Console.ReadKey();
-                    return;
-                }
-
-                for (int i = 0; i < students.Count; i++)
-                {
-                    double currentPoints = students[i].TotalPoints;
-                    string status = currentPoints >= 36 ? "[Допущено]" : "[Недопуск]";
-
-                    Console.Write($"{i + 1}. {students[i].Name,-20} - {currentPoints,4:F1} балів ");
-                    Console.ForegroundColor = currentPoints >= 36 ? ConsoleColor.Green : ConsoleColor.Red;
-                    Console.WriteLine(status);
-                    Console.ResetColor();
-                }
-
-                Console.Write("\nОберіть номер студента для введення оцінки (або 0 для повернення в меню): ");
-
-                if (int.TryParse(Console.ReadLine(), out int studentIndex))
-                {
-                    if (studentIndex == 0)
-                    {
-                        return;
-                    }
-
-                    if (studentIndex >= 1 && studentIndex <= students.Count)
-                    {
-                        var student = students[studentIndex - 1];
-
-                        if (student.TotalPoints < 36)
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine($"\nСтудента(ки) \"{student.Name}\" не допущено до іспиту (менше 36 балів за семестр).");
-                            Console.ResetColor();
-                        }
-                        else
-                        {
-                            Console.Write($"\nУведіть бали за іспит для студента(ки) \"{student.Name}\" (від 0 до 40): ");
-
-                            if (double.TryParse(Console.ReadLine().Replace('.', ','), out double examPoints) && examPoints >= 0 && examPoints <= 40)
-                            {
-                                if (examPoints < 24)
-                                {
-                                    Console.ForegroundColor = ConsoleColor.Yellow;
-                                    Console.WriteLine("\nСтудент(ка) не набрав(ла) мінімальні 24 бали. Іспит вважається нескладеним.");
-                                    Console.ResetColor();
-                                }
-
-                                student.AssignGrade("Іспит", examPoints);
-                                SaveToDatabase(dbPath);
-
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine("\nОцінку за іспит успішно збережено!");
-                                Console.ResetColor();
-                            }
-                            else
-                            {
-                                Console.ForegroundColor = ConsoleColor.Red;
-                                Console.WriteLine("\nНекоректне значення! Бали за іспит мають бути від 0 до 40.");
-                                Console.ResetColor();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("\nСтудента(ки) з таким номером не існує.");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("\nНекоректний ввід. Потрібно ввести число.");
-                }
-
-                Console.WriteLine("\nНатисніть будь-яку клавішу для продовження...");
-                Console.ReadKey();
             }
         }
     }

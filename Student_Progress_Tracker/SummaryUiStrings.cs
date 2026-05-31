@@ -8,7 +8,7 @@ namespace Student_Progress_Tracker
     {
         public string Title { get; set; } = "ПІДСУМКОВА ВІДОМІСТЬ";
         public string HeaderNo { get; set; } = "№";
-        public string HeaderName { get; set; } = "ПІБ Студента";
+        public string HeaderName { get; set; } = "ПІБ Студента(ки)";
         public string HeaderLectures { get; set; } = "Лекції";
         public string HeaderLabs { get; set; } = "Лаби";
         public string HeaderPoints { get; set; } = "Бали";
