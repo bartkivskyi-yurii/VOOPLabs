@@ -285,37 +285,54 @@ namespace Student_Progress_Tracker
             Console.Write($"Уведіть кількість балів за \"{taskTitle}\": ");
             if (double.TryParse(Console.ReadLine(), out double points) && points >= 0)
             {
-                Console.WriteLine("Коли була здана робота?");
-                Console.WriteLine("1 - Точно вчасно");
-                Console.WriteLine("2 - Раніше дедлайну (+ бонус)");
-                Console.WriteLine("3 - Після дедлайну (- штраф)");
-                Console.WriteLine("Ваш вибір (1, 2 або 3): ");
-                string deadlineChoice = Console.ReadLine();
+                List<string> tasksWithoutDeadline = new List<string>();
+                string exceptionsPath = "noDeadline.json";
 
-                if (deadlineChoice == "2")
+                if (File.Exists(exceptionsPath))
                 {
-                    Console.Write("На скільки днів раніше дедлайну здана робота? ");
-                    if (int.TryParse(Console.ReadLine(), out int daysEarly) && daysEarly > 0)
+                    try
                     {
-                        double bonusPerDay = 1.5;
-                        double bonusTotal = daysEarly * bonusPerDay;
-                        points += bonusTotal;
-
-                        Console.WriteLine($"Бонус за ранню здачу: +{bonusTotal} балів. Всього за роботу: {points}");
+                        string rawExceptions = File.ReadAllText(exceptionsPath);
+                        tasksWithoutDeadline = JsonSerializer.Deserialize<List<string>>(rawExceptions) ?? new List<string>();
                     }
+                    catch { }
                 }
-                else if (deadlineChoice == "3")
+                bool skipDeadline = tasksWithoutDeadline.Any(t => t.Equals(taskTitle, StringComparison.OrdinalIgnoreCase));
+
+                if (!skipDeadline)
                 {
-                    Console.Write("Скільки днів прострочено? ");
-                    if (int.TryParse(Console.ReadLine(), out int daysLate) && daysLate > 0)
+                    Console.WriteLine("Коли була здана робота?");
+                    Console.WriteLine("1 - Точно вчасно");
+                    Console.WriteLine("2 - Раніше дедлайну (+ бонус)");
+                    Console.WriteLine("3 - Після дедлайну (- штраф)");
+                    Console.WriteLine("Ваш вибір (1, 2 або 3): ");
+                    string deadlineChoice = Console.ReadLine();
+
+                    if (deadlineChoice == "2")
                     {
-                        double penaltyPerDay = 1.5;
-                        double penaltyTotal = daysLate * penaltyPerDay;
-                        points -= penaltyTotal;
+                        Console.Write("На скільки днів раніше дедлайну здана робота? ");
+                        if (int.TryParse(Console.ReadLine(), out int daysEarly) && daysEarly > 0)
+                        {
+                            double bonusPerDay = 1.5;
+                            double bonusTotal = daysEarly * bonusPerDay;
+                            points += bonusTotal;
 
-                        if (points < 0) points = 0;
+                            Console.WriteLine($"Бонус за ранню здачу: +{bonusTotal} балів. Всього за роботу: {points}");
+                        }
+                    }
+                    else if (deadlineChoice == "3")
+                    {
+                        Console.Write("Скільки днів прострочено? ");
+                        if (int.TryParse(Console.ReadLine(), out int daysLate) && daysLate > 0)
+                        {
+                            double penaltyPerDay = 1.5;
+                            double penaltyTotal = daysLate * penaltyPerDay;
+                            points -= penaltyTotal;
 
-                        Console.WriteLine($"Штраф за запізнення: -{penaltyTotal} балів. Всього за роботу: {points}");
+                            if (points < 0) points = 0;
+
+                            Console.WriteLine($"Штраф за запізнення: -{penaltyTotal} балів. Всього за роботу: {points}");
+                        }
                     }
                 }
 
@@ -338,7 +355,7 @@ namespace Student_Progress_Tracker
             }
             else
             {
-                Console.WriteLine("[Помилка] Некоректне значення балів.");
+                Console.WriteLine("Некоректне значення балів.");
             }
         }
     }
